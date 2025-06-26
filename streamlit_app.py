@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from agents.schema_crawler import extract_schema
 from agents.reverse_engineer import reverse_engineer
 from agents.complexity_analyzer import analyze
+from agents.technical_analyzer import analyze_for_refactoring
 from agents.documentation_writer import write_summary
 from agents.csv_generator import write_csv
 
@@ -38,6 +39,7 @@ if st.button("Run Analysis"):
     summaries = []
     complexities = []
     combined = []
+    technical_analyses = []
 
     for i, proc in enumerate(procs):
         # Update current analysis index
@@ -60,6 +62,12 @@ if st.button("Run Analysis"):
         # Perform the analysis
         summary = reverse_engineer(proc)
         complexity = analyze(proc)
+        
+        # Perform technical analysis for high-complexity procedures
+        if complexity["complexity"] > 3:
+            technical_analysis = analyze_for_refactoring(proc, complexity["complexity"])
+            technical_analyses.append(technical_analysis)
+        
         # Combine all data including last execution time
         combined_data = {
             "sp_name": proc["name"],
@@ -79,10 +87,15 @@ if st.button("Run Analysis"):
         for j, p in enumerate(procs):
             st.markdown(f"✅ {j+1}. **{p['name']}** - *Completed*")
 
+    # Generate outputs
     write_csv(combined)
-    write_summary(combined)
+    high_complexity_count = write_summary(combined, technical_analyses)
+    
     st.session_state.analysis_complete = True
+    
+    # Show completion message with summary
     st.success("Analysis complete!")
+    st.info(f"📊 **Summary**: {len(procs)} procedures analyzed, {high_complexity_count} flagged for refactoring review (complexity > 3)")
 
 # Display procedure list if analysis has been run but not yet complete
 elif st.session_state.procedures_list and not st.session_state.analysis_complete:
@@ -98,23 +111,31 @@ elif st.session_state.procedures_list and not st.session_state.analysis_complete
 
 # Show download buttons if analysis is complete
 if st.session_state.analysis_complete:
-    if os.path.exists("outputs/analysis.csv"):
-        with open("outputs/analysis.csv", "rb") as file:
-            st.download_button(
-                label="Download CSV",
-                data=file.read(),
-                file_name="analysis.csv",
-                mime="text/csv"
-            )
+    st.markdown("### 📥 Download Reports")
     
-    if os.path.exists("outputs/summary.docx"):
-        with open("outputs/summary.docx", "rb") as file:
-            st.download_button(
-                label="Download Word Summary",
-                data=file.read(),
-                file_name="summary.docx",
-                mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-            )
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        if os.path.exists("outputs/analysis.csv"):
+            with open("outputs/analysis.csv", "rb") as file:
+                st.download_button(
+                    label="📊 Download Excel/CSV Report",
+                    data=file.read(),
+                    file_name="stored_procedures_analysis.csv",
+                    mime="text/csv",
+                    help="Complete analysis with 3-sentence business summaries for all procedures"
+                )
+    
+    with col2:
+        if os.path.exists("outputs/summary.docx"):
+            with open("outputs/summary.docx", "rb") as file:
+                st.download_button(
+                    label="📋 Download Refactoring Report",
+                    data=file.read(),
+                    file_name="refactoring_candidates.docx",
+                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                    help="Detailed technical analysis for procedures with complexity > 3"
+                )
     
     # Add a button to reset and run new analysis
     if st.button("Run New Analysis"):
