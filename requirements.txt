@@ -1,0 +1,7 @@
+openai
+sqlalchemy
+pandas
+python-docx
+jira
+python-dotenv
+crewai
