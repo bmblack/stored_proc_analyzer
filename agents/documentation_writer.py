@@ -36,7 +36,7 @@ def write_summary(docs, technical_analyses, path="outputs/summary.docx"):
             
             # Add complexity factors
             document.add_heading("Complexity Factors", level=3)
-            factors_text = ", ".join(doc["complexity_factors"]) if doc["complexity_factors"] else "No specific factors identified"
+            factors_text = doc["complexity_factors"] if doc["complexity_factors"] else "No specific factors identified"
             document.add_paragraph(f"Lines of Code: {doc['lines_of_code']}")
             document.add_paragraph(f"Contributing Factors: {factors_text}")
             
