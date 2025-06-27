@@ -17,17 +17,46 @@ This project uses [CrewAI](https://github.com/joaomdmoura/crewAI) to coordinate 
 - **ComplexityAgent**: Uses a custom logic tool to score stored procedures based on size, control structures, and database patterns (e.g., cursors, joins).
 - Each agent is paired with a `Task` and orchestrated via a `Crew` that runs tasks in sequence and collects results.
 
-## 🖥️ Streamlit App
+## 🚀 How to Run the Application
 
-Run the UI with:
+### Option 1: Streamlit Web Interface (Recommended)
+
+The easiest way to use the analyzer is through the web interface:
+
 ```bash
+# Install dependencies
+pip install -r requirements.txt
+
+# Run the Streamlit app
 streamlit run streamlit_app.py
 ```
 
-Features:
-- One-click stored procedure analysis
-- CSV + Word export downloads
-- Visual feedback during processing
+Then open your browser to `http://localhost:8501`
+
+**Streamlit Features:**
+- 🎯 One-click stored procedure analysis
+- 📊 Real-time progress tracking during analysis
+- 📥 CSV + Word document downloads
+- 🎫 JIRA user story generation for high-complexity procedures
+- ✏️ Editable user stories with acceptance criteria
+- 🚀 Push user stories to JIRA (integration ready)
+
+### Option 2: Command Line Interface
+
+For automated workflows or scripting:
+
+```bash
+# Install dependencies
+pip install -r requirements.txt
+
+# Run the CLI version
+python main.py
+```
+
+**CLI Features:**
+- Batch processing of all stored procedures
+- Generates reports in `outputs/` directory
+- Suitable for CI/CD pipelines or scheduled analysis
 
 ## 🔧 Configuration
 
@@ -54,13 +83,6 @@ Features:
 - **Local SQL Server**: `mssql+pyodbc:///?odbc_connect=DRIVER%3D%7BODBC+Driver+17+for+SQL+Server%7D%3BSERVER%3Dlocalhost%2C1433%3BDATABASE%3DYourDatabase%3BUID%3Dyour-username%3BPWD%3Dyour-password%3BTrustServerCertificate%3Dyes%3BEncrypt%3Dno`
 - **Azure SQL Database**: `mssql+pyodbc:///?odbc_connect=DRIVER%3D%7BODBC+Driver+17+for+SQL+Server%7D%3BSERVER%3Dyour-server.database.windows.net%2C1433%3BDATABASE%3Dyour-database%3BUID%3Dyour-username%3BPWD%3Dyour-password%3BEncrypt%3Dyes%3BTrustServerCertificate%3Dno`
 - **Windows Authentication**: `mssql+pyodbc:///?odbc_connect=DRIVER%3D%7BODBC+Driver+17+for+SQL+Server%7D%3BSERVER%3Dyour-server%3BDATABASE%3Dyour-database%3BTrusted_Connection%3Dyes%3BTrustServerCertificate%3Dyes`
-
-## 🏁 To Run from CLI
-
-```bash
-pip install -r requirements.txt
-python main.py
-```
 
 ## 📂 Output Files
 
