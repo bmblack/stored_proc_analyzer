@@ -24,6 +24,12 @@ if 'analysis_in_progress' not in st.session_state:
     st.session_state.analysis_in_progress = False
 if 'high_complexity_count' not in st.session_state:
     st.session_state.high_complexity_count = 0
+if 'user_stories_generated' not in st.session_state:
+    st.session_state.user_stories_generated = False
+if 'combined_data' not in st.session_state:
+    st.session_state.combined_data = []
+if 'technical_analyses' not in st.session_state:
+    st.session_state.technical_analyses = []
 
 # Show Run Analysis button only when not in progress and not complete
 if not st.session_state.analysis_in_progress and not st.session_state.analysis_complete:
@@ -92,11 +98,8 @@ if st.session_state.analysis_in_progress and not st.session_state.analysis_compl
         summaries.append(summary)
         complexities.append(complexity)
 
-    # Final update - mark all as complete
-    with procedure_list_placeholder.container():
-        st.markdown("### Analysis Progress:")
-        for j, p in enumerate(procs):
-            st.markdown(f"✅ {j+1}. **{p['name']}** - *Completed*")
+    # Clear the progress display when analysis is complete
+    procedure_list_placeholder.empty()
 
     # Generate outputs
     write_csv(combined)
@@ -106,6 +109,8 @@ if st.session_state.analysis_in_progress and not st.session_state.analysis_compl
     st.session_state.analysis_complete = True
     st.session_state.analysis_in_progress = False
     st.session_state.high_complexity_count = high_complexity_count
+    st.session_state.combined_data = combined
+    st.session_state.technical_analyses = technical_analyses
     
     # Show completion message with summary
     st.success("Analysis complete!")
@@ -158,3 +163,91 @@ if st.session_state.analysis_complete:
                     mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
                     help="Detailed technical analysis for procedures with complexity > 3"
                 )
+    
+    # JIRA User Stories Section
+    st.markdown("---")
+    st.markdown("### 🎫 JIRA User Stories")
+    
+    # Get high-complexity procedures for user story generation
+    high_complexity_procs = [proc for proc in st.session_state.procedures_list if any(
+        combined_data["sp_name"] == proc["name"] and combined_data["complexity"] > 3 
+        for combined_data in st.session_state.get('combined_data', [])
+    )]
+    
+    if st.session_state.high_complexity_count > 0:
+        st.info(f"📋 {st.session_state.high_complexity_count} stored procedures were identified as needing refactoring. Would you like to generate JIRA user stories for these procedures?")
+        
+        if st.button("🎫 Generate User Stories"):
+            st.session_state.user_stories_generated = True
+            st.rerun()
+    else:
+        st.success("🎉 No stored procedures require refactoring at this time!")
+
+# Display user stories if generated
+if st.session_state.get('user_stories_generated', False) and st.session_state.analysis_complete:
+    st.markdown("---")
+    st.markdown("### ✏️ Edit User Stories")
+    st.info("Review and edit the user stories below before pushing to JIRA. Each story is pre-populated with information from the technical analysis.")
+    
+    # Get high-complexity procedures and their technical analyses
+    high_complexity_data = [data for data in st.session_state.combined_data if data["complexity"] > 3]
+    
+    user_stories = []
+    
+    for i, proc_data in enumerate(high_complexity_data):
+        # Find corresponding technical analysis
+        tech_analysis = next((ta for ta in st.session_state.technical_analyses if ta["name"] == proc_data["sp_name"]), None)
+        
+        st.markdown(f"#### User Story {i+1}")
+        
+        # Editable title
+        title = st.text_input(
+            f"Title {i+1}:",
+            value=f"SP Refactor - {proc_data['sp_name']}",
+            key=f"title_{i}"
+        )
+        
+        # Create description with business summary and technical analysis
+        description_content = f"""**Business Function:**
+{proc_data['summary']}
+
+**Technical Analysis & Refactoring Recommendations:**
+{tech_analysis['technical_analysis'] if tech_analysis else 'Technical analysis not available'}
+
+**Complexity Factors:**
+- Lines of Code: {proc_data['lines_of_code']}
+- Contributing Factors: {proc_data['complexity_factors']}
+
+**Acceptance Criteria:**
+
+**Given** the current stored procedure has complexity issues
+**When** the refactoring is completed
+**Then** the procedure should have improved maintainability and reduced complexity score
+
+**Given** the refactored stored procedure is deployed
+**When** it is executed with the same inputs as the original
+**Then** it should produce identical results with improved performance"""
+        
+        # Editable description
+        description = st.text_area(
+            f"Description {i+1}:",
+            value=description_content,
+            height=300,
+            key=f"description_{i}"
+        )
+        
+        user_stories.append({
+            "title": title,
+            "description": description,
+            "procedure_name": proc_data['sp_name']
+        })
+        
+        st.markdown("---")
+    
+    # Store user stories in session state
+    st.session_state.user_stories = user_stories
+    
+    # Push to JIRA button (placeholder)
+    if st.button("🚀 Push User Stories to JIRA", type="primary"):
+        st.warning("🚧 JIRA integration coming soon! Your user stories are ready to be pushed.")
+        st.success(f"✅ {len(user_stories)} user stories prepared for JIRA")
