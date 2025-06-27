@@ -109,7 +109,6 @@ if st.session_state.analysis_in_progress and not st.session_state.analysis_compl
     
     # Show completion message with summary
     st.success("Analysis complete!")
-    st.info(f"📊 **Summary**: {len(procs)} procedures analyzed, {high_complexity_count} flagged for refactoring review (complexity > 3)")
 
 # Display procedure list if analysis has been run but not yet complete
 elif st.session_state.procedures_list and not st.session_state.analysis_complete:
