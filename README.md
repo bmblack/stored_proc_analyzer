@@ -13,9 +13,68 @@ This project uses a team of AI agents (powered by CrewAI and OpenAI) to analyze 
 
 This project uses [CrewAI](https://github.com/joaomdmoura/crewAI) to coordinate a team of autonomous agents. Each agent is assigned a specific goal and uses tools to complete tasks based on the input stored procedures.
 
-- **SummaryAgent**: Uses an LLM tool to reverse engineer and summarize the logic of each stored procedure.
-- **ComplexityAgent**: Uses a custom logic tool to score stored procedures based on size, control structures, and database patterns (e.g., cursors, joins).
-- Each agent is paired with a `Task` and orchestrated via a `Crew` that runs tasks in sequence and collects results.
+### Agent Specialization & Roles
+
+- **SummaryAgent**: 
+  - **Role**: Reverse Engineer
+  - **Goal**: Generate high-level business summaries of SQL stored procedures
+  - **Tools**: Reverse Engineer Procedure tool (uses LLM for business logic analysis)
+  - **Backstory**: Database expert who understands SQL logic and can summarize functionality
+
+- **ComplexityAgent**: 
+  - **Role**: Analyzer  
+  - **Goal**: Determine complexity scores for each procedure
+  - **Tools**: Analyze Complexity tool (custom logic for technical assessment)
+  - **Backstory**: Assesses code complexity based on size, control structures, and database patterns
+
+### Orchestration Architecture
+
+Our CrewAI implementation demonstrates **true agent orchestration** through:
+
+#### 🤖 **Agent Coordination**
+```python
+crew = Crew(
+    agents=[summary_agent, complexity_agent],
+    tasks=[summary_task, complexity_task],
+    process="sequential"  # Coordinated workflow
+)
+```
+
+#### 🔄 **Workflow Management**
+- **Sequential Processing**: Tasks execute in coordinated order
+- **Agent Autonomy**: Each agent independently decides how to use their specialized tools
+- **Task Dependencies**: Later tasks can build upon earlier agent results
+- **Error Handling**: Graceful fallbacks maintain workflow integrity
+
+#### 🛠️ **Tool Integration**
+- **Specialized Tools**: Each agent has domain-specific analysis capabilities
+- **Context Sharing**: Global procedure context allows tools to access necessary data
+- **Type Safety**: Tools use proper type hints for CrewAI parameter passing
+
+### Orchestration vs Direct Function Calls
+
+**Without Orchestration (Simple Approach):**
+```python
+summary = reverse_engineer(proc)
+complexity = analyze(proc)
+```
+
+**With CrewAI Orchestration:**
+```python
+# Agents work together autonomously
+crew = Crew(agents=[summary_agent, complexity_agent], tasks=[...])
+result = crew.kickoff()  # Coordinated execution
+```
+
+### Benefits of Agent Orchestration
+
+1. **Scalability**: Easy to add more agents or modify workflow without changing core logic
+2. **Separation of Concerns**: Each agent focuses on its specialized domain
+3. **Autonomous Decision Making**: Agents independently determine tool usage strategies
+4. **Workflow Flexibility**: Crew manages task execution order and agent interaction
+5. **Error Resilience**: Individual agent failures don't break the entire workflow
+
+Each agent is paired with specialized `Tasks` and orchestrated via a `Crew` that runs tasks in sequence, demonstrates inter-agent coordination, and collects results from the autonomous agent workflow.
 
 ## 🚀 How to Run the Application
 
