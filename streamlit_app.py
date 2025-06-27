@@ -20,8 +20,19 @@ if 'procedures_list' not in st.session_state:
     st.session_state.procedures_list = []
 if 'current_analysis_index' not in st.session_state:
     st.session_state.current_analysis_index = -1
+if 'analysis_in_progress' not in st.session_state:
+    st.session_state.analysis_in_progress = False
+if 'high_complexity_count' not in st.session_state:
+    st.session_state.high_complexity_count = 0
 
-if st.button("Run Analysis"):
+# Show Run Analysis button only when not in progress and not complete
+if not st.session_state.analysis_in_progress and not st.session_state.analysis_complete:
+    if st.button("Run Analysis"):
+        st.session_state.analysis_in_progress = True
+        st.rerun()
+
+# Run analysis if triggered
+if st.session_state.analysis_in_progress and not st.session_state.analysis_complete:
     with st.spinner("Extracting stored procedures..."):
         procs = extract_schema()
     
@@ -91,7 +102,10 @@ if st.button("Run Analysis"):
     write_csv(combined)
     high_complexity_count = write_summary(combined, technical_analyses)
     
+    # Store results in session state
     st.session_state.analysis_complete = True
+    st.session_state.analysis_in_progress = False
+    st.session_state.high_complexity_count = high_complexity_count
     
     # Show completion message with summary
     st.success("Analysis complete!")
@@ -109,8 +123,17 @@ elif st.session_state.procedures_list and not st.session_state.analysis_complete
         else:
             st.markdown(f"⏳ {i+1}. **{proc['name']}** - *Pending*")
 
-# Show download buttons if analysis is complete
+# Show completed analysis results and download buttons if analysis is complete
 if st.session_state.analysis_complete:
+    # Display completed procedures list
+    if st.session_state.procedures_list:
+        st.markdown(f"## {len(st.session_state.procedures_list)} stored procedures analyzed")
+        st.markdown("### Analysis Results:")
+        for i, proc in enumerate(st.session_state.procedures_list):
+            st.markdown(f"✅ {i+1}. **{proc['name']}** - *Completed*")
+        
+        # Show summary
+        st.info(f"📊 **Summary**: {len(st.session_state.procedures_list)} procedures analyzed, {st.session_state.high_complexity_count} flagged for refactoring review (complexity > 3)")
     st.markdown("### 📥 Download Reports")
     
     col1, col2 = st.columns(2)
@@ -136,8 +159,3 @@ if st.session_state.analysis_complete:
                     mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
                     help="Detailed technical analysis for procedures with complexity > 3"
                 )
-    
-    # Add a button to reset and run new analysis
-    if st.button("Run New Analysis"):
-        st.session_state.analysis_complete = False
-        st.rerun()
