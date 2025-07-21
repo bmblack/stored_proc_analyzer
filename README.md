@@ -220,4 +220,3 @@ The analyzer generates two distinct reports:
 - python-docx (Word report generation)
 - dotenv (config management)
 - JIRA (optional: for ticket generation)
-TEST
