@@ -143,6 +143,51 @@ python main.py
 - **Azure SQL Database**: `mssql+pyodbc:///?odbc_connect=DRIVER%3D%7BODBC+Driver+17+for+SQL+Server%7D%3BSERVER%3Dyour-server.database.windows.net%2C1433%3BDATABASE%3Dyour-database%3BUID%3Dyour-username%3BPWD%3Dyour-password%3BEncrypt%3Dyes%3BTrustServerCertificate%3Dno`
 - **Windows Authentication**: `mssql+pyodbc:///?odbc_connect=DRIVER%3D%7BODBC+Driver+17+for+SQL+Server%7D%3BSERVER%3Dyour-server%3BDATABASE%3Dyour-database%3BTrusted_Connection%3Dyes%3BTrustServerCertificate%3Dyes`
 
+## 🏠 Local Development Setup
+
+### Using AdventureWorks Sample Database
+
+For local development and testing, we recommend using Microsoft's **AdventureWorks** sample database, which contains realistic stored procedures perfect for demonstrating this project's capabilities.
+
+#### Why AdventureWorks?
+- ✅ Contains **real-world stored procedures** of varying complexity levels
+- ✅ Demonstrates all agent coordination features effectively  
+- ✅ No sensitive data concerns for proof of concept development
+- ✅ Well-documented and widely used in the SQL Server community
+
+#### Quick Setup Instructions
+
+1. **Download AdventureWorks Database**:
+   - Visit: https://github.com/Microsoft/sql-server-samples/releases/tag/adventureworks
+   - Download `AdventureWorks2019.bak` (recommended) or `AdventureWorks2017.bak`
+   - These contain the most stored procedures for analysis
+
+2. **Restore Database** (SQL Server Management Studio):
+   ```sql
+   RESTORE DATABASE AdventureWorks2019 
+   FROM DISK = 'C:\path\to\AdventureWorks2019.bak'
+   WITH REPLACE;
+   ```
+
+3. **Update Connection String** in `config/settings.env`:
+   ```bash
+   # AdventureWorks local connection example
+   DB_CONNECTION_STRING=mssql+pyodbc:///?odbc_connect=DRIVER%3D%7BODBC+Driver+17+for+SQL+Server%7D%3BSERVER%3Dlocalhost%2C1433%3BDATABASE%3DAdventureWorks2019%3BUID%3Dsa%3BPWD%3Dyour-password%3BTrustServerCertificate%3Dyes%3BEncrypt%3Dno
+   ```
+
+4. **Test Connection**:
+   ```bash
+   python test_connection.py
+   ```
+
+#### What You'll Analyze
+AdventureWorks contains **~20 stored procedures** including:
+- Simple procedures (complexity 1-2): Basic CRUD operations
+- Medium procedures (complexity 3-5): Business logic with joins
+- Complex procedures (complexity 6+): Advanced operations with cursors, loops, and error handling
+
+This variety perfectly demonstrates how the AI agents coordinate to analyze different complexity levels and generate appropriate recommendations.
+
 ## 📂 Output Files
 
 The analyzer generates two distinct reports:
